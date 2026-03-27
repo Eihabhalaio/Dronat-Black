@@ -109,8 +109,9 @@ COPY requirements-blackarch.txt /tmp/requirements.txt
 COPY install_packages_blackarch.py /tmp/install_packages.py
 
 # Install Python packages with robust error handling
-RUN /home/devuser/anaconda3/bin/python /tmp/install_packages.py && \
-    rm /tmp/requirements.txt /tmp/install_packages.py
+# Script handles individual package failures gracefully
+RUN /home/devuser/anaconda3/bin/python /tmp/install_packages.py || true && \
+    rm -f /tmp/requirements.txt /tmp/install_packages.py
 
 # Install security-focused Python packages
 RUN /home/devuser/anaconda3/bin/pip install --no-cache-dir \

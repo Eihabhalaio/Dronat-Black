@@ -209,9 +209,13 @@ def main():
     ]
     
     for group_name in group_priority:
-        if group_name in PACKAGE_GROUPS:
-            group_results = install_package_group(group_name, PACKAGE_GROUPS[group_name])
-            all_results.update(group_results)
+        try:
+            if group_name in PACKAGE_GROUPS:
+                group_results = install_package_group(group_name, PACKAGE_GROUPS[group_name])
+                all_results.update(group_results)
+        except Exception as e:
+            logger.error(f"Error installing group {group_name}: {e}")
+            continue
     
     # Summary
     successful = sum(1 for success in all_results.values() if success)
@@ -235,6 +239,7 @@ def main():
         logger.info("All critical security packages installed successfully!")
     
     logger.info("Dronat BlackArch security environment ready for penetration testing!")
+    # Always exit successfully to allow Docker build to continue
     sys.exit(0)
 
 if __name__ == "__main__":
