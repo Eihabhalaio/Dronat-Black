@@ -64,7 +64,7 @@ COPY install_packages.py /tmp/install_packages.py
 
 # Install Python packages with robust error handling using the dedicated installer
 RUN /home/devuser/anaconda3/bin/python /tmp/install_packages.py && \
-    rm /tmp/requirements.txt /tmp/install_packages.py
+    rm -f /tmp/requirements.txt /tmp/install_packages.py || true
 
 # Install n8n for the user (not globally)
 RUN npm config set prefix '/home/devuser/.npm-global' \
@@ -85,17 +85,27 @@ RUN echo 'alias shellngn-start="docker run -d --name shellngn -p 8080:8080 -v /h
 RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
 ENV PATH="/home/devuser/.elan/bin:${PATH}"
 
-# Install Neovim
-RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz &&     tar -xzf nvim-linux64.tar.gz &&     mv nvim-linux64 /home/devuser/.local/share/ &&     rm nvim-linux64.tar.gz
+# Install Neovim (try new filename first, fall back to legacy)
+RUN mkdir -p /home/devuser/.local/share && \
+    if curl -fLO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz 2>/dev/null; then \
+        tar -xzf nvim-linux-x86_64.tar.gz && \
+        mv nvim-linux-x86_64 /home/devuser/.local/share/ && \
+        rm nvim-linux-x86_64.tar.gz && \
+        ln -s /home/devuser/.local/share/nvim-linux-x86_64 /home/devuser/.local/share/nvim-linux64; \
+    else \
+        curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz && \
+        tar -xzf nvim-linux64.tar.gz && \
+        mv nvim-linux64 /home/devuser/.local/share/ && \
+        rm nvim-linux64.tar.gz; \
+    fi
 ENV PATH="/home/devuser/.local/share/nvim-linux64/bin:${PATH}"
 
 # Copy Neovim configuration and menu script
 COPY --chown=devuser:devuser nvim /home/devuser/.config/nvim
 COPY --chown=devuser:devuser menu.sh /home/devuser/menu.sh
 
-# Pre-install Neovim plugins
-RUN nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync' || true
-RUN nvim --headless -c 'Lazy sync' +qa
+# Pre-install Neovim plugins via lazy.nvim
+RUN nvim --headless "+Lazy! sync" +qa || true
 
 # Set the entrypoint to the menu script
 ENTRYPOINT ["/home/devuser/menu.sh"]

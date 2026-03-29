@@ -3,7 +3,8 @@
 
 -- Bootstrap lazy.nvim if not installed
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+local uv = vim.uv or vim.loop
+if not uv.fs_stat(lazypath) then
   vim.fn.system({
     "git", "clone", "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
@@ -144,7 +145,7 @@ vim.g.mapleader = " "
 vim.cmd("colorscheme gruvbox")
 
 -- Treesitter
-require("nvim-treesitter.configs").setup({
+require("nvim-treesitter").setup({
   ensure_installed = { 
     "python", "lua", "json", "html", "bash", "sql", 
     "javascript", "typescript", "markdown", "yaml", "lean", "csv", "toml",

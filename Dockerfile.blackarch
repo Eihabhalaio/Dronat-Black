@@ -55,11 +55,11 @@ RUN pacman -S --noconfirm \
     hashcat \
     john \
     hydra \
-    gnu-netcat \
+    openbsd-netcat \
     socat \
     tcpdump \
-    ettercap \
-    beef
+    ettercap
+RUN pacman -S --noconfirm beef || echo "beef not available, skipping"
 
 # Install additional tools that may not be available in all repos
 RUN pacman -S --noconfirm gobuster || echo "gobuster not available"
@@ -105,8 +105,8 @@ RUN /home/devuser/anaconda3/bin/conda init bash && \
     /home/devuser/anaconda3/bin/conda update -n base -c defaults conda -y
 
 # Copy installation scripts
-COPY requirements-blackarch.txt /tmp/requirements.txt
-COPY install_packages_blackarch.py /tmp/install_packages.py
+COPY --chown=devuser:devuser requirements-blackarch.txt /tmp/requirements.txt
+COPY --chown=devuser:devuser install_packages_blackarch.py /tmp/install_packages.py
 
 # Install Python packages with robust error handling
 # Script handles individual package failures gracefully
